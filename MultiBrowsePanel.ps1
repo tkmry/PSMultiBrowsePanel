@@ -18,21 +18,21 @@ if ($Init) {
         Remove-Item "lib" -Recurse
     }
 
-    Find-Package -Name  Microsoft.Web.WebView2 -Source https://www.nuget.org/api/v2 | Save-Package -Path $PSScriptRoot
+    Find-Package -Name  Microsoft.Web.WebView2 -Source https://www.nuget.org/api/v2 | Save-Package -Path $PSScriptRoot > $null
     $nugetFile    = Get-Item *.nupkg
     $nugetZipFile = $nugetFile.FullName + ".zip"
-    Rename-Item $nugetFile $nugetZipFile
-    Expand-Archive $nugetZipFile
+    Rename-Item $nugetFile $nugetZipFile > $null
+    Expand-Archive $nugetZipFile > $null
 
     if (-not (Test-Path "lib")) {
-        New-Item -type Directory "lib"
+        New-Item -type Directory "lib" > $null
     }
     Copy-Item (Join-Path $nugetFile "\lib\net45\Microsoft.Web.WebView2.Core.dll") "lib"
     Copy-Item (Join-Path $nugetFile "\lib\net45\Microsoft.Web.WebView2.Wpf.dll") "lib"
     Copy-Item (Join-Path $nugetFile "\runtimes\win-x64\native\WebView2Loader.dll") "lib"
 
-    Remove-Item $nugetFile -Recurse
-    Remove-Item $nugetZipFile
+    Remove-Item $nugetFile -Recurse > $null
+    Remove-Item $nugetZipFile > $null
 
     if ((Test-Path $libWebView2Wpf) -and (Test-Path $libWebView2Core) -and (Test-Path $libWebview2Loader)) {
         Read-Host "取得に成功しました[Enter]"

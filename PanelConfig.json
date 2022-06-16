@@ -1,21 +1,25 @@
-[
-    [
-        {
-            "URL": "https://srad.jp/",
-            "ScrollTo": ".story",
-            "RefreshRate": 150
-        },
-        {
-            "URL": "https://news.yahoo.co.jp/ranking/access/news",
-            "ScrollTo": ".newsFeed_item",
-            "RefreshRate": 200
-        }
-    ],
-    [
-        {
-            "URL": "https://news.livedoor.com/topics/category/trend/",
-            "ScrollTo": "",
-            "RefreshRate": 300
-        }
+{
+    "Title": "Multi Browse Panel",
+    "Icon": "mbp.png",
+    "PanelConfig": [
+        [
+            {
+                "URL": "https://srad.jp/",
+                "ScrollTo": ".story",
+                "RefreshRate": 150
+            },
+            {
+                "URL": "https://news.yahoo.co.jp/ranking/access/news",
+                "ScrollTo": ".newsFeed_item",
+                "RefreshRate": 200
+            }
+        ],
+        [
+            {
+                "URL": "https://news.livedoor.com/topics/category/trend/",
+                "ScrollTo": "",
+                "RefreshRate": 300
+            }
+        ]
     ]
-]
+}
