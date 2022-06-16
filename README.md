@@ -8,11 +8,11 @@ MIT ライセンス
 外部ライブラリとして WebView2 ライブラリを必要とする。
 下記にアクセスしてライブラリを取得する。
 
-* NuGet Gallery | Microsoft.Web.WebView2 1.0.1210.39<br />
+* NuGet Gallery | Microsoft.Web.WebView2 1.0.1245.22<br />
   https://www.nuget.org/packages/Microsoft.Web.WebView2
 
 取得したファイルが下記のディレクトリ構造になるように配置する。
-なお、利用バージョンとしては microsoft.web.webview2.1.0.1222-prerelease 以上を想定している。
+1.0.1245.22　以上で動作することを確認している。
 
 ```
 PSMultiBrowsePanel\
@@ -22,9 +22,9 @@ PSMultiBrowsePanel\
   + PanelConfig.json
   + README.md
   + lib\
-    + Microsoft.Web.WebView2.Core.dll
-    + Microsoft.Web.WebView2.Wpf.dll
-    + WebView2Loader.dll
+    + Microsoft.Web.WebView2.Core.dll  …  \lib\net45 より取得
+    + Microsoft.Web.WebView2.Wpf.dll  …  \lib\net45　より取得
+    + WebView2Loader.dll  … runtimes\win-x64\native より取得
   + data\  … スクリプト側で自動生成
 ```
 
