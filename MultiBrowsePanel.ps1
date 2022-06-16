@@ -1,17 +1,66 @@
-﻿Add-Type -AssemblyName PresentationFramework  # WPF 用
+﻿Param(
+    [switch]$Init,
+    [string]$PanelConfigFile
+)
+
+Add-Type -AssemblyName PresentationFramework  # WPF 用
 Add-Type -AssemblyName System.Windows.Forms   # Timer 用
 
+$libWebView2Wpf    = (Join-Path $PSScriptRoot "lib\Microsoft.Web.WebView2.Wpf.dll")
+$libWebView2Core   = (Join-Path $PSScriptRoot "lib\Microsoft.Web.WebView2.Core.dll")
+$libWebview2Loader = (Join-Path $PSScriptRoot "lib\WebView2Loader.dll")
+
+if ($Init) {
+    # 初期セットアップ用の処理
+    Write-Host "WebView2 ライブラリ取得を行います。既に取得している場合は一度削除し再取得します。"
+
+    if (Test-Path "lib") {
+        Remove-Item "lib" -Recurse
+    }
+
+    Find-Package -Name  Microsoft.Web.WebView2 -Source https://www.nuget.org/api/v2 | Save-Package -Path $PSScriptRoot
+    $nugetFile    = Get-Item *.nupkg
+    $nugetZipFile = $nugetFile.FullName + ".zip"
+    Rename-Item $nugetFile $nugetZipFile
+    Expand-Archive $nugetZipFile
+
+    if (-not (Test-Path "lib")) {
+        New-Item -type Directory "lib"
+    }
+    Copy-Item (Join-Path $nugetFile "\lib\net45\Microsoft.Web.WebView2.Core.dll") "lib"
+    Copy-Item (Join-Path $nugetFile "\lib\net45\Microsoft.Web.WebView2.Wpf.dll") "lib"
+    Copy-Item (Join-Path $nugetFile "\runtimes\win-x64\native\WebView2Loader.dll") "lib"
+
+    Remove-Item $nugetFile -Recurse
+    Remove-Item $nugetZipFile
+
+    if ((Test-Path $libWebView2Wpf) -and (Test-Path $libWebView2Core) -and (Test-Path $libWebview2Loader)) {
+        Read-Host "取得に成功しました[Enter]"
+        exit 0
+    }
+    else {
+        Read-Host "取得に失敗しました[Enter]"
+        exit 1
+    }
+}
+
+
+if ($PanelConfigFile.Length -eq 0) {
+    $PanelConfigFile = (Join-Path $PSScriptRoot "PanelConfig.json")
+}
+
 <# WebView2 用アセンブリロード #>
-[void][reflection.assembly]::LoadFile((Join-Path $PSScriptRoot "lib\Microsoft.Web.WebView2.Wpf.dll"))  # microsoft.web.webview2.1.0.1222-prerelease 想定
-[void][reflection.assembly]::LoadFile((Join-Path $PSScriptRoot "lib\Microsoft.Web.WebView2.Core.dll")) # microsoft.web.webview2.1.0.1222-prerelease 想定
+[void][reflection.assembly]::LoadFile($libWebView2Wpf)
+[void][reflection.assembly]::LoadFile($libWebView2Core)
 
 <# XAML にて Window 構築 #>
-[xml]$xaml  = (Get-Content (Join-Path $PSScriptRoot .\ui01.xaml))
+[xml]$xaml  = (Get-Content (Join-Path $PSScriptRoot "ui01.xaml"))
 $nodeReader = (New-Object System.XML.XmlNodeReader $xaml)
 $window     = [Windows.Markup.XamlReader]::Load($nodeReader)
 
 <# Get Configuration #>
-$panelConfigs = Get-Content (Join-Path $PSScriptRoot .\PanelConfig.json) | ConvertFrom-Json
+$panelConfigRoot = Get-Content $PanelConfigFile | ConvertFrom-Json
+$panelConfigs = $panelConfigRoot.PanelConfig
 
 $maxRow    = $panelConfigs.Length
 $maxColumn = ($panelConfigs | %{ $_.Length} | Measure-Object -Maximum).Maximum
@@ -20,6 +69,13 @@ $maxColumn = ($panelConfigs | %{ $_.Length} | Measure-Object -Maximum).Maximum
 $grid = $window.findName("OverallGrid")
 
 <# Controls Settings #>
+if ($panelConfigRoot.Title) {
+    $window.title = $panelConfigRoot.Title
+}
+if ($panelConfigRoot.Icon) {
+    $window.icon  = $panelConfigRoot.Icon
+}
+
 for ($i = 0; $i -lt $maxColumn; $i++) {
     $columDef = New-Object System.Windows.Controls.ColumnDefinition
     $grid.ColumnDefinitions.add($columDef)
@@ -36,7 +92,6 @@ $panelConfigs | ForEach-Object {$rowCount = 0}{
         $config = $_
 
         $webview2 = New-Object Microsoft.Web.WebView2.Wpf.WebView2
-        $webview2.Source = [uri]$config.url
         $webview2.CreationProperties = New-Object 'Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties'
         $webview2.CreationProperties.UserDataFolder = (Join-Path $PSScriptRoot "data")
 
@@ -44,6 +99,7 @@ $panelConfigs | ForEach-Object {$rowCount = 0}{
         [System.Windows.Controls.Grid]::SetColumn($webview2, $columnCount)
 
         $grid.Children.Add($webview2)
+        $webview2.Source = [uri]$config.url
 
         <# リロード処理 #>
         $timer = New-Object System.Windows.Forms.Timer
