@@ -1,4 +1,4 @@
-Add-Type -AssemblyName PresentationFramework  # WPF 用
+﻿Add-Type -AssemblyName PresentationFramework  # WPF 用
 Add-Type -AssemblyName System.Windows.Forms   # Timer 用
 
 <# WebView2 用アセンブリロード #>
